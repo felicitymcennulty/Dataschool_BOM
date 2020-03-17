@@ -56,3 +56,6 @@ BOM_stncountdays <- BOM_separated %>%
                 group_by(Station_number) %>%
                 summarise(n_days = n())
 
+#Which month saw the lowest average daily temperature difference?
+as.numeric(Min_temp)
+#test

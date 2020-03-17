@@ -57,5 +57,34 @@ BOM_stncountdays <- BOM_separated %>%
                 summarise(n_days = n())
 
 #Which month saw the lowest average daily temperature difference?
-as.numeric(Min_temp)
-#test
+
+#this question will need a mutate() to calculate the temperature difference.
+#The temperature values are stored as characters after you have run separate() 
+#(see the <chr> in the second row if you print the data frame to the console).
+#To be able to calculate the difference without an error, 
+#you will need to convert them to numeric values with as.numeric() first.
+#For rows that are missing a temperature measurement, 
+#the temperature difference will be NA.
+#How will you deal with these in the rest of the analysis?
+
+?mutate
+#as.numeric(Min_temp)
+#change char to numeric 
+BOM_temp_numeric <- mutate(BOM_filtered, min = as.numeric(Min_temp), 
+                      max = as.numeric(Max_temp))
+
+#to mutate to numeric and do maths at same time
+BOM_temp_diff <- BOM_separated  %>% 
+              mutate(Temp_diff = as.numeric(Max_temp)- as.numeric(Min_temp))
+BOM_temp_diff
+view(BOM_temp_diff)
+
+#to deal with missing data use NA
+BOM_temp_diff <- BOM_separated  %>% 
+  mutate(Temp_diff = as.numeric(Max_temp)- as.numeric(Min_temp)) %>% #to mutate to numeric and do maths at same time
+  group_by(Month) %>% #group by month
+  summarise(Av_daily_temp = mean(Temp_diff, na.rm = TRUE)) %>% #calculate mean temp and remove null values 
+  arrange(Av_daily_temp) #sort order by specifying column
+
+
+

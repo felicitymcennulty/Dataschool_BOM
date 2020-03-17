@@ -50,8 +50,9 @@ BOM_grouped <- BOM_filtered %>%
 
 BOMbyStn_countdays <- BOM_grouped%>%summarise(n_days = n())
 
-#to nest these so you don't make lots of dataframes
+#to nest these so you don't make lots of dataframes link with pipes
+BOM_stncountdays <- BOM_separated %>%
+                filter(Min_temp != "-", Max_temp != "-", Rainfall != "-")%>%
+                group_by(Station_number) %>%
+                summarise(n_days = n())
 
-
-#For each station, how many days have a minimum temperature, 
-#a maximum temperature and a rainfall measurement recorded?

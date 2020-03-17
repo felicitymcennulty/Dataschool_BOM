@@ -86,5 +86,62 @@ BOM_temp_diff <- BOM_separated  %>%
   summarise(Av_daily_temp = mean(Temp_diff, na.rm = TRUE)) %>% #calculate mean temp and remove null values 
   arrange(Av_daily_temp) #sort order by specifying column
 
+#Which state saw the lowest average daily temperature difference?
+#to calculate which station is lowest
+BOM_station_temp_diff <- BOM_separated  %>% 
+  mutate(Temp_diff = as.numeric(Max_temp)- as.numeric(Min_temp)) %>% #to mutate to numeric and do maths at same time
+  group_by(Station_number) %>% #group by month
+  summarise(Av_daily_temp = mean(Temp_diff, na.rm = TRUE)) %>% #calculate mean temp and remove null values 
+  arrange(Av_daily_temp) #sort order by specifying column
+
+#now match station_number to state
+
+BOM_stations
+#tidy BOM_stations
+
+#To tidy it before merging, you will need to gather() the station data into an 
+#intermediate form that has three columns, one for the station ID number, 
+#one for the type of data being recorded (the info column in the original data), and 
+#one for the actual recorded value itself. (Is this intermediate data tidy?)
+
+#This data frame can then be spread() into a shape with one row for each station. 
+#Remember that the key argument to spread() identifies the column that will provide 
+#the data for the new column names, and the value argument identifies the column that 
+#will provide the data for the new cells.
+
+#gather
+#gather(tidyr::table4a, key = year, value = TB_cases, -country)
+#cows_long <- gather(cows, key = weight_type, value = weight, -id) 
+#gather all columns except id
+
+BOM_tidy_stations <- BOM_stations %>% 
+                      gather(Station_ID, Misc, -info) %>% 
+                      spread(info, Misc)
 
 
+#Finally, you will want to join the two datasets together to identify the state of 
+#each weather station. If you run into errors at this step, check that the two data frames
+#have a shared column to merge, and that they are the same data type 
+#(eg. you can’t merge a character column with a numeric column).
+#full_join(df1, df2)
+
+#make sure column names are the same Station_ID/Station_number
+#rename(gapminder, country_name = country, population = pop)
+#new_name = old_name
+
+BOM_station_rename <- BOM_separated %>% 
+                        rename(Station_ID = Station_number) %>% 
+                        mutate(Station_ID = as.character(Station_ID)) 
+                        #how to change from numeric to character
+
+BOM_merged_data <- full_join(BOM_station_rename,BOM_tidy_stations )
+
+#Which state saw the lowest average daily temperature difference?
+
+BOM_merged_temp_diff <- BOM_merged_data  %>% 
+  mutate(Temp_diff = as.numeric(Max_temp)- as.numeric(Min_temp)) %>% #to mutate to numeric and do maths at same time
+  group_by(state) %>% #group by month
+  summarise(Av_daily_temp = mean(Temp_diff, na.rm = TRUE)) %>% #calculate mean temp and remove null values 
+  arrange(Av_daily_temp) #sort order by specifying column
+
+BOM_merged_temp_diff #QLD av daily temp is 7.36

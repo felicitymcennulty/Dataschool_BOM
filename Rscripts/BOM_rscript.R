@@ -18,13 +18,13 @@ head(BOM_data)
 tail(BOM_data)
 summary(BOM_data)
 
-#Question 1
-#For each station, how many days have a minimum temperature, 
+
+
+#Q1. For each station, how many days have a minimum temperature, 
 #a maximum temperature and a rainfall measurement recorded?
 
 
 ##separate
-
 #need to separate temp_min_max "12/22"
 ?separate
 BOM_separated <- BOM_data %>% 
@@ -33,7 +33,6 @@ BOM_separated <- BOM_data %>%
 BOM_separated
 
 ##filter
-
 # filter() the data to keep only rows that have minimum temperature, 
 #maximum temperature, and rainfall measurements.
 #filter(gapminder, country == "Australia", year >= 1997)
@@ -56,7 +55,9 @@ BOM_stncountdays <- BOM_separated %>%
                 group_by(Station_number) %>%
                 summarise(n_days = n())
 
-#Which month saw the lowest average daily temperature difference?
+
+
+#Q2. Which month saw the lowest average daily temperature difference?
 
 #this question will need a mutate() to calculate the temperature difference.
 #The temperature values are stored as characters after you have run separate() 
@@ -86,7 +87,9 @@ BOM_temp_diff <- BOM_separated  %>%
   summarise(Av_daily_temp = mean(Temp_diff, na.rm = TRUE)) %>% #calculate mean temp and remove null values 
   arrange(Av_daily_temp) #sort order by specifying column
 
-#Which state saw the lowest average daily temperature difference?
+
+
+#Q3 Which state saw the lowest average daily temperature difference?
 #to calculate which station is lowest
 BOM_station_temp_diff <- BOM_separated  %>% 
   mutate(Temp_diff = as.numeric(Max_temp)- as.numeric(Min_temp)) %>% #to mutate to numeric and do maths at same time
@@ -96,7 +99,6 @@ BOM_station_temp_diff <- BOM_separated  %>%
 
 #now match station_number to state
 
-BOM_stations
 #tidy BOM_stations
 
 #To tidy it before merging, you will need to gather() the station data into an 
@@ -114,8 +116,9 @@ BOM_stations
 #cows_long <- gather(cows, key = weight_type, value = weight, -id) 
 #gather all columns except id
 
-BOM_tidy_stations <- BOM_stations %>% 
+BOM_tidy_stations <- BOM_stations %>% #column names are the station ids in orginal
                       gather(Station_ID, Misc, -info) %>% 
+                      #misc is the values, info has the row names
                       spread(info, Misc)
 
 
@@ -144,4 +147,30 @@ BOM_merged_temp_diff <- BOM_merged_data  %>%
   summarise(Av_daily_temp = mean(Temp_diff, na.rm = TRUE)) %>% #calculate mean temp and remove null values 
   arrange(Av_daily_temp) #sort order by specifying column
 
+#Answer Q3
 BOM_merged_temp_diff #QLD av daily temp is 7.36
+
+
+
+#Q4, Does the westmost (lowest longitude) or eastmost (highest longitude) weather station
+# in our dataset have a higher average solar exposure?
+
+BOM_lon_sol_exp <- BOM_merged_data %>% 
+  mutate (Solar_exposure = as.numeric(Solar_exposure)) %>% 
+  group_by(lon, state, Station_ID) %>%
+  summarise(Av_solar_exp = mean(Solar_exposure, na.rm = TRUE)) %>%
+  #filter(Av_solar_exp > 0) #this removes the null
+filter(!is.nan(Av_solar_exp) ) #this removes nan values
+  #calculate mean solar exp and remove null values 
+  ungroup() %>% #this is needed because n() doesn't work otherwise, can group/ungroup to do multiple averages eg. state then lon
+ # slice(-2: - (n()-1)) #this deletes rows 2 to (n= end row) minus 1
+  filter(lon == max(lon) |lon == min(lon))
+  
+#Answer Q4
+BOM_lon_sol_exp
+#highest av solar average is at eastmost (highest longitude) weather station
+
+#min(lon) =115.8075, av solar exp = 19.2
+#max lon = 153.4661 av solar exp = 19.5
+
+  ?slice

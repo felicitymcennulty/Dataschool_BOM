@@ -121,6 +121,8 @@ BOM_tidy_stations <- BOM_stations %>% #column names are the station ids in orgin
                       #misc is the values, info has the row names
                       spread(info, Misc)
 
+#BOM_s_long <- gather(BOM_s, key = "Station_number", value = "data", -info) 
+#gather the data
 
 #Finally, you will want to join the two datasets together to identify the state of 
 #each weather station. If you run into errors at this step, check that the two data frames
@@ -148,7 +150,7 @@ BOM_merged_temp_diff <- BOM_merged_data  %>%
   arrange(Av_daily_temp) #sort order by specifying column
 
 #Answer Q3
-BOM_merged_temp_diff #QLD av daily temp is 7.36
+BOM_merged_temp_diff #QLD av daily temp diff =is 7.36
 
 
 

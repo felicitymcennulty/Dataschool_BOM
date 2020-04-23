@@ -181,43 +181,46 @@ write.csv(Q4_BOM_lon_sol_exp, "Results/Q4_BOM_lon_sol_exp.csv")
 
 #note need to make axes start at zero
 
+
+BOM_Perth <-  BOM_merged_tidy %>% 
+                filter(Station_number == 9225) %>% 
+                filter(Min_temp != "-", Max_temp != "-", Rainfall != "-", Solar_exposure != "-")
+
 summary(BOM_Perth)
-
-
-BOM_Perth <-  BOM_tidy_data %>% 
-                filter(Station_number == 9225)
-
 #Question 1
 #For the Perth station (ID 9225), produce three scatter plots showing the relationship between the maximum temperature and
 #each other measurement recorded (minimum temperature, rainfall and solar exposure).
 
 Plot1_maxTempvminTemp <- BOM_Perth %>% 
                           ggplot(aes(x=Max_temp, y= Min_temp))+
-                          geom_point(alpha=0.6)+
+                          geom_point(alpha=0.6, colour="darkorange")+
                           scale_x_continuous(expand = c(0,0), limits = c(0,45))+
                           scale_y_continuous(expand = c(0,0), limits = c(-5,30))+
                           labs(title = "Comparison of min and max temp (1859 - 2019) ",
                                x = "Maximum daily temperature (oC)",
-                               y = "Minimum daily temperature (oC)")
+                               y = "Minimum daily temperature (oC)")+
+                          theme(plot.title = element_text(size = 10, face = "bold"))
                         
 Plot1_maxTempvminTemp
 
 Plot2_MaxtempvRainfall <- BOM_Perth %>% 
                             ggplot(aes(x=Max_temp, y= Rainfall))+
-                            geom_point(alpha=0.6)+
+                            geom_point(alpha=0.6, colour = "blue")+
                             scale_x_continuous(expand = c(0,0), limits = c(0,45))+
                             labs(title = "Comparison of rainfall and max temp (1859 - 2019) ",
                                  x = "Maximum daily temperature (oC)",
-                                 y = "Rainfall (mm)")
+                                 y = "Rainfall (mm)")+
+                            theme(plot.title = element_text(size = 10, face = "bold"))
 Plot2_MaxtempvRainfall
 
 Plot3_MaxtempvSolarExposure <- BOM_Perth %>% 
                                   ggplot(aes(x=Max_temp, y= Solar_exposure))+
-                                  geom_point(alpha=0.6)+
+                                  geom_point(alpha=0.6, colour = "orchid3")+
                                   scale_x_continuous(expand = c(0,0), limits = c(0,45))+
                                   labs(title = "Comparison of solar exposure and max temp (1859 - 2019) ",
                                   x = "Maximum daily temperature (oC)",
-                                  y = "Solar exposure")
+                                  y = "Solar exposure")+
+                                  theme(plot.title = element_text(size = 10, face = "bold"))
 Plot3_MaxtempvSolarExposure
 
 #Question 2
@@ -225,24 +228,59 @@ Plot3_MaxtempvSolarExposure
 #You may need to try a few different data/aesthetic mappings to find one you like.
 
 Plot4_Maxtempvall <- BOM_Perth %>% 
-  ggplot()+
-  geom_point(aes(x=Max_temp, y= Min_temp, colour = "Min temp", alpha = 0.6))+
-  geom_point(aes(x=Max_temp, y= Rainfall, colour = "Rainfall", alpha = 0.6))+
-  geom_point(aes(x=Max_temp, y= Solar_exposure, colour = "Solar exposure", alpha = 0.6))+
-  scale_x_continuous(expand = c(0,0), limits = c(0,45))+
-  labs(title = " Max temp (1859 - 2019) ",
+  ggplot(aes(x=Max_temp, y= Min_temp, size = Rainfall,colour = Solar_exposure))+
+  geom_point(alpha = 0.2)+
+  labs(title = "Weather variables (1859 - 2019) ",
        x = "Maximum daily temperature (oC)",
-       y = "unit",
-       colour = "Unit of measure")+
-  guides(alpha = FALSE)
+       y = "Minium daily temperature",
+       size = "Solar exposure",
+       colour = "Rainfall")+
+  theme( legend.position = "bottom", legend.text = element_text(size = 8), legend.title = element_text(size = 8),
+         plot.title = element_text(size = 10, face = "bold"))
+
 Plot4_Maxtempvall
 
-#scale_color_manual(name = "", values = c("Min_temp" = "red", "Rainfall" = "blue", "Solar_exposure" = "green"))+
 
+#Question 3
+#Take the four plots you have produced in Q1 and Q2 and save them as a multi-panel figure.
+#now axis text looks too big
 
 library(cowplot)
 BOM_PerthSummaryplot <- plot_grid(Plot1_maxTempvminTemp,Plot2_MaxtempvRainfall,
                                   Plot3_MaxtempvSolarExposure, Plot4_Maxtempvall )
-
+BOM_PerthSummaryplot
 ggsave(filename = "Results/BOM_PerthSummary.png", plot = BOM_PerthSummaryplot, 
-      width = 15, height = 10, dpi = 300, units = "cm")
+      width = 20, height = 15, dpi = 300, units = "cm")
+
+#Question 4
+#Using the entire BOM dataset, calculate the average monthly rainfall for each station. 
+#Produce a lineplot to visualise this data and the state each station is in.
+
+AvMonthlyRainfall <- BOM_merged_tidy %>%
+  filter(Min_temp != "-", Max_temp != "-", Rainfall != "-", Solar_exposure != "-") %>% 
+  group_by(state,Station_number, Month) %>% 
+  summarise(Av_Monthly_Rainfall = mean(Rainfall)) %>% 
+  arrange(Month) %>% 
+  mutate(Month = as.factor(Month))
+
+AvMonthlyRainfallPlot <- AvMonthlyRainfall %>% 
+                          ggplot(aes(x=Month, y = Av_Monthly_Rainfall,colour = state, group = as.factor(Station_number) ))+
+                          geom_line()+
+                          labs(title = "Av Montly Rainfall", x = "Month", y = "Av Rainfall",
+                               caption = "Data source: BOM meterological data")
+AvMonthlyRainfallPlot
+
+ggsave(filename = "Results/AvMonthlyRainfallPlot.png", plot = AvMonthlyRainfallPlot, 
+       width = 20, height = 15, dpi = 300, units = "cm")
+
+AvMonthlyRainfallPlotFacet <- AvMonthlyRainfall %>% 
+  ggplot(aes(x=Month, y = Av_Monthly_Rainfall, group = as.factor(Station_number)))+
+  geom_line()+
+  facet_wrap(~state)+
+  labs(title = "Av Montly Rainfall across Australia", x = "Month", y = "Av Rainfall",
+       caption = "Data source: BOM meterological data")+
+  theme(legend.position = "none")
+AvMonthlyRainfallPlotFacet
+
+ggsave(filename = "Results/AvMonthlyRainfallPlotFacet.png", plot = AvMonthlyRainfallPlotFacet, 
+       width = 20, height = 15, dpi = 300, units = "cm")

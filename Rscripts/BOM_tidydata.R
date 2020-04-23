@@ -174,6 +174,75 @@ write.csv(Q4_BOM_lon_sol_exp, "Results/Q4_BOM_lon_sol_exp.csv")
 #  summarise(avg_solar_exp = mean(Solar_exposure))
 
 
-?slice
+##################
+#data viz prac EASTER
+
+#use BOM_tidy_data note this still has NAs, can use filter(Min_temp != "-", Max_temp != "-", Rainfall != "-")%>% 
+
+#note need to make axes start at zero
+
+summary(BOM_Perth)
 
 
+BOM_Perth <-  BOM_tidy_data %>% 
+                filter(Station_number == 9225)
+
+#Question 1
+#For the Perth station (ID 9225), produce three scatter plots showing the relationship between the maximum temperature and
+#each other measurement recorded (minimum temperature, rainfall and solar exposure).
+
+Plot1_maxTempvminTemp <- BOM_Perth %>% 
+                          ggplot(aes(x=Max_temp, y= Min_temp))+
+                          geom_point(alpha=0.6)+
+                          scale_x_continuous(expand = c(0,0), limits = c(0,45))+
+                          scale_y_continuous(expand = c(0,0), limits = c(-5,30))+
+                          labs(title = "Comparison of min and max temp (1859 - 2019) ",
+                               x = "Maximum daily temperature (oC)",
+                               y = "Minimum daily temperature (oC)")
+                        
+Plot1_maxTempvminTemp
+
+Plot2_MaxtempvRainfall <- BOM_Perth %>% 
+                            ggplot(aes(x=Max_temp, y= Rainfall))+
+                            geom_point(alpha=0.6)+
+                            scale_x_continuous(expand = c(0,0), limits = c(0,45))+
+                            labs(title = "Comparison of rainfall and max temp (1859 - 2019) ",
+                                 x = "Maximum daily temperature (oC)",
+                                 y = "Rainfall (mm)")
+Plot2_MaxtempvRainfall
+
+Plot3_MaxtempvSolarExposure <- BOM_Perth %>% 
+                                  ggplot(aes(x=Max_temp, y= Solar_exposure))+
+                                  geom_point(alpha=0.6)+
+                                  scale_x_continuous(expand = c(0,0), limits = c(0,45))+
+                                  labs(title = "Comparison of solar exposure and max temp (1859 - 2019) ",
+                                  x = "Maximum daily temperature (oC)",
+                                  y = "Solar exposure")
+Plot3_MaxtempvSolarExposure
+
+#Question 2
+#Display these four measurements for the Perth station in a single scatter plot by using additional aesthetic mappings.
+#You may need to try a few different data/aesthetic mappings to find one you like.
+
+Plot4_Maxtempvall <- BOM_Perth %>% 
+  ggplot()+
+  geom_point(aes(x=Max_temp, y= Min_temp, colour = "Min temp", alpha = 0.6))+
+  geom_point(aes(x=Max_temp, y= Rainfall, colour = "Rainfall", alpha = 0.6))+
+  geom_point(aes(x=Max_temp, y= Solar_exposure, colour = "Solar exposure", alpha = 0.6))+
+  scale_x_continuous(expand = c(0,0), limits = c(0,45))+
+  labs(title = " Max temp (1859 - 2019) ",
+       x = "Maximum daily temperature (oC)",
+       y = "unit",
+       colour = "Unit of measure")+
+  guides(alpha = FALSE)
+Plot4_Maxtempvall
+
+#scale_color_manual(name = "", values = c("Min_temp" = "red", "Rainfall" = "blue", "Solar_exposure" = "green"))+
+
+
+library(cowplot)
+BOM_PerthSummaryplot <- plot_grid(Plot1_maxTempvminTemp,Plot2_MaxtempvRainfall,
+                                  Plot3_MaxtempvSolarExposure, Plot4_Maxtempvall )
+
+ggsave(filename = "Results/BOM_PerthSummary.png", plot = BOM_PerthSummaryplot, 
+      width = 15, height = 10, dpi = 300, units = "cm")
